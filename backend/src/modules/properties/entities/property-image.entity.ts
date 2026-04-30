@@ -1,5 +1,10 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { Property } from './property.entity';
 
@@ -11,5 +16,6 @@ export class PropertyImage {
   @Column({ default: false }) is_primary: boolean;
   @CreateDateColumn() created_at: Date;
   @ManyToOne(() => Property, (p) => p.images, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'property_id' }) property: Property;
+  @JoinColumn({ name: 'property_id' })
+  property: Property;
 }

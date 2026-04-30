@@ -7,7 +7,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { Client } from './entities/client.entity';
-import { CreateClientDto, UpdateClientDto, ClientFilterDto } from './dto/client.dto';
+import {
+  CreateClientDto,
+  UpdateClientDto,
+  ClientFilterDto,
+} from './dto/client.dto';
 
 @Injectable()
 export class ClientsService {
@@ -104,9 +108,7 @@ export class ClientsService {
       (l) => !['deal_closed', 'lost'].includes(l.status),
     );
     if (activeLeads && activeLeads.length > 0) {
-      throw new BadRequestException(
-        'Cannot delete client with active leads',
-      );
+      throw new BadRequestException('Cannot delete client with active leads');
     }
 
     await this.clientRepo.remove(client);

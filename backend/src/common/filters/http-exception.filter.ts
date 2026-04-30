@@ -9,9 +9,9 @@ import {
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const response: any = ctx.getResponse();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const request: any = ctx.getRequest();
 
     const status =

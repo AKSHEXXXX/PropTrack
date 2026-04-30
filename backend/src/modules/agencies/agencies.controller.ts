@@ -10,11 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AgenciesService } from './agencies.service';
 import { CreateAgencyDto, UpdateAgencyDto } from './dto/agency.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -47,10 +43,7 @@ export class AgenciesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update agency details' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateAgencyDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAgencyDto) {
     return this.agenciesService.update(id, dto);
   }
 

@@ -251,7 +251,7 @@ pnpm seed
 ```
 
 Then open:
-- **API**: http://localhost:3000/api
+- **API**: http://localhost:3000/api/v1
 - **Swagger**: http://localhost:3000/api/docs
 
 **Admin credentials**: `admin@proptrack.com` / `Admin1234!`

@@ -6,11 +6,16 @@ import { CreateContractDto, UpdateContractDto } from './dto/contract.dto';
 
 @Injectable()
 export class ContractsService {
-  constructor(@InjectRepository(Contract) private readonly contractRepo: Repository<Contract>) {}
+  constructor(
+    @InjectRepository(Contract)
+    private readonly contractRepo: Repository<Contract>,
+  ) {}
 
   async create(dto: CreateContractDto) {
     const contract = this.contractRepo.create({
-      deal_id: dto.dealId, document_url: dto.documentUrl, contract_type: dto.contractType,
+      deal_id: dto.dealId,
+      document_url: dto.documentUrl,
+      contract_type: dto.contractType,
       signed_date: dto.signedDate ? new Date(dto.signedDate) : undefined,
       expiry_date: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
     });
@@ -19,12 +24,18 @@ export class ContractsService {
   }
 
   async findAll() {
-    const items = await this.contractRepo.find({ relations: ['deal'], order: { created_at: 'DESC' } });
+    const items = await this.contractRepo.find({
+      relations: ['deal'],
+      order: { created_at: 'DESC' },
+    });
     return { data: items, message: 'Contracts fetched successfully' };
   }
 
   async findOne(id: number) {
-    const c = await this.contractRepo.findOne({ where: { contract_id: id }, relations: ['deal'] });
+    const c = await this.contractRepo.findOne({
+      where: { contract_id: id },
+      relations: ['deal'],
+    });
     if (!c) throw new NotFoundException(`Contract #${id} not found`);
     return { data: c, message: 'Contract fetched successfully' };
   }

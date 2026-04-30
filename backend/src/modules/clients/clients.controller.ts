@@ -12,7 +12,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
-import { CreateClientDto, UpdateClientDto, ClientFilterDto } from './dto/client.dto';
+import {
+  CreateClientDto,
+  UpdateClientDto,
+  ClientFilterDto,
+} from './dto/client.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @ApiTags('Clients')
@@ -42,10 +46,7 @@ export class ClientsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update client details' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateClientDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateClientDto) {
     return this.clientsService.update(id, dto);
   }
 

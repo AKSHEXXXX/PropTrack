@@ -55,10 +55,7 @@ export class AgentsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update agent details' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateAgentDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAgentDto) {
     return this.agentsService.update(id, dto);
   }
 

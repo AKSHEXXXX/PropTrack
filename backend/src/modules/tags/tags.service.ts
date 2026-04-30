@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tag } from './entities/tag.entity';
@@ -6,12 +10,17 @@ import { CreateTagDto } from './dto/tag.dto';
 
 @Injectable()
 export class TagsService {
-  constructor(@InjectRepository(Tag) private readonly tagRepo: Repository<Tag>) {}
+  constructor(
+    @InjectRepository(Tag) private readonly tagRepo: Repository<Tag>,
+  ) {}
 
   async create(dto: CreateTagDto) {
     const existing = await this.tagRepo.findOne({ where: { name: dto.name } });
     if (existing) throw new ConflictException('Tag name already exists');
-    const tag = this.tagRepo.create({ name: dto.name, color: dto.color ?? '#6B7280' });
+    const tag = this.tagRepo.create({
+      name: dto.name,
+      color: dto.color ?? '#6B7280',
+    });
     const saved = await this.tagRepo.save(tag);
     return { data: saved, message: 'Tag created successfully' };
   }

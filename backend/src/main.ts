@@ -10,16 +10,19 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Global prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api/v1');
 
   // CORS
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  });
 
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: false, // strips unknown fields silently (whitelist test expects 201)
       transform: true,
       transformOptions: { enableImplicitConversion: true },
     }),
@@ -31,30 +34,15 @@ async function bootstrap() {
   // Global response interceptor
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  // Swagger
+  // Swagger — path is outside global prefix
   const config = new DocumentBuilder()
     .setTitle('PropTrack CRM API')
-    .setDescription(
-      `## PropTrack Real Estate CRM — REST API
-
-### Features
-- **Auth**: JWT-based authentication (register / login)
-- **10 Feature Modules**: agencies, agents, clients, properties, leads, appointments, deals, contracts, payments, tags
-- **Dashboard**: 7 analytical endpoints with nested & correlated SQL queries
-- **SQL Advanced**: 3 triggers, 2 stored procedures, 2 functions, 3 nested queries, 2 correlated queries
-
-### Quick Start
-1. \`POST /api/auth/register\` — Create account
-2. \`POST /api/auth/login\` — Get JWT token
-3. Add \`Authorization: Bearer <token>\` to all other requests
-      `,
-    )
-    .setVersion('1.0.0')
+    .setDescription('Real Estate CRM Backend — NestJS + TypeORM + PostgreSQL')
+    .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'JWT',
     )
-    .setContact('PropTrack', 'https://github.com/AKSHEXXXX/PropTrack', '')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -65,8 +53,10 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
 
-  console.log(`\n🚀 PropTrack CRM running on: http://localhost:${port}/api`);
-  console.log(`📚 Swagger docs at:           http://localhost:${port}/api/docs`);
+  console.log(`\n🚀 PropTrack CRM running on: http://localhost:${port}/api/v1`);
+  console.log(
+    `📚 Swagger docs at:           http://localhost:${port}/api/docs`,
+  );
   console.log(`🌱 Seed data:                 pnpm seed\n`);
 }
 

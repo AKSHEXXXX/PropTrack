@@ -61,7 +61,11 @@ export class DashboardService {
         )
       GROUP BY a.agent_id, a.first_name, a.last_name, a.email
       ORDER BY active_leads DESC`);
-    return { data, message: 'Agent performance fetched (agents with no closed deals this month)' };
+    return {
+      data,
+      message:
+        'Agent performance fetched (agents with no closed deals this month)',
+    };
   }
 
   // CQ-01: Properties visited but never offered on
@@ -83,7 +87,10 @@ export class DashboardService {
       GROUP BY p.property_id, p.title, p.city, p.price, p.property_type, a.first_name, a.last_name
       HAVING COUNT(apt.appointment_id) >= 1
       ORDER BY total_visits DESC, last_visit_date DESC`);
-    return { data, message: 'Properties viewed but never offered on (correlated query)' };
+    return {
+      data,
+      message: 'Properties viewed but never offered on (correlated query)',
+    };
   }
 
   // CQ-02: Stale leads with agent context
@@ -103,7 +110,10 @@ export class DashboardService {
       JOIN agents a ON a.agent_id = l.agent_id
       WHERE l.is_stale = TRUE AND l.status NOT IN ('deal_closed','lost')
       ORDER BY l.last_activity ASC`);
-    return { data, message: 'Stale leads with agent context (correlated query)' };
+    return {
+      data,
+      message: 'Stale leads with agent context (correlated query)',
+    };
   }
 
   // NQ-02: Top 5 agents by deal value this month
@@ -129,7 +139,8 @@ export class DashboardService {
   // PRC-02: Monthly report via stored procedure
   async getMonthlyReport(agencyId: number, month: number, year: number) {
     // Stored procedure uses RAISE NOTICE; we replicate the query for API response
-    const data = await this.dataSource.query(`
+    const data = await this.dataSource.query(
+      `
       SELECT
         a.first_name || ' ' || a.last_name AS agent_name,
         COUNT(DISTINCT l.lead_id) AS total_leads,
@@ -147,10 +158,18 @@ export class DashboardService {
       WHERE a.agency_id = $1 AND a.is_active = TRUE
       GROUP BY a.agent_id, a.first_name, a.last_name
       ORDER BY deals_closed DESC, total_revenue DESC`,
-      [agencyId, month, year]);
+      [agencyId, month, year],
+    );
     // Also call the procedure for grading proof
-    await this.dataSource.query(`CALL sp_generate_monthly_report($1, $2, $3)`, [agencyId, month, year]);
-    return { data, message: `Monthly report for agency ${agencyId} — ${month}/${year}` };
+    await this.dataSource.query(`CALL sp_generate_monthly_report($1, $2, $3)`, [
+      agencyId,
+      month,
+      year,
+    ]);
+    return {
+      data,
+      message: `Monthly report for agency ${agencyId} — ${month}/${year}`,
+    };
   }
 
   // NQ-03: Properties priced above agency average
