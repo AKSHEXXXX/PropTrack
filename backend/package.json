@@ -16,7 +16,7 @@
     "test": "jest --testPathPatterns=unit",
     "test:watch": "jest --testPathPatterns=unit --watch",
     "test:e2e": "DB_TYPE=pg-mem jest --testPathPatterns=integration --runInBand",
-    "test:qualify": "DB_TYPE=pg-mem jest --testPathPatterns=qualification --runInBand --forceExit",
+    "test:qualify": "DB_TYPE=pg-mem jest --testPathPatterns=qualification --runInBand --detectOpenHandles",
     "test:coverage": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
@@ -79,12 +79,7 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.json"
-      }
+      "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.json" }]
     },
     "collectCoverageFrom": [
       "src/**/*.service.ts"

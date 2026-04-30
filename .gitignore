@@ -32,3 +32,13 @@ pgdata/
 
 # pnpm
 .pnpm-store/
+
+# Docs (keep README.md)
+API_spec.md
+Claude.md
+Database.md
+Prd.md
+SOP.md
+Testing.md
+graphify-out/
+graphify_out
