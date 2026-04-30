@@ -1,21 +1,44 @@
 import {
+  CallHandler,
+  ExecutionContext,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+interface ResponseEnvelope<T> {
+  data?: T;
+  message?: string;
+}
+
 @Injectable()
-export class ResponseInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+export class ResponseInterceptor<T> implements NestInterceptor<
+  ResponseEnvelope<T> | T
+> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<ResponseEnvelope<T> | T>,
+  ): Observable<{ statusCode: number; message: string; data: T }> {
+    const response = context.switchToHttp().getResponse<Response>();
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: context.switchToHttp().getResponse().statusCode,
-        message: data?.message || 'Success',
-        data: data?.data !== undefined ? data.data : data,
-      })),
+      map((payload) => {
+        const maybeEnvelope = payload as ResponseEnvelope<T>;
+        const hasEnvelope =
+          typeof payload === 'object' &&
+          payload !== null &&
+          'message' in payload;
+        return {
+          statusCode: response.statusCode,
+          message: hasEnvelope
+            ? (maybeEnvelope.message ?? 'Success')
+            : 'Success',
+          data: hasEnvelope
+            ? (maybeEnvelope.data ?? (payload as T))
+            : (payload as T),
+        };
+      }),
     );
   }
 }

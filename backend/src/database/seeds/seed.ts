@@ -288,7 +288,7 @@ async function seed() {
           'Interested in the property',
         ],
       );
-    } catch (_) {
+    } catch {
       /* skip duplicate */
     }
   }

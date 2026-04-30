@@ -8,9 +8,10 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as fs from 'fs';
 import * as path from 'path';
-import request from 'supertest';
+import request = require('supertest');
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../src/app.module';
 import { AllExceptionsFilter } from '../../src/common/filters/http-exception.filter';
@@ -52,6 +53,21 @@ beforeAll(async () => {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('PropTrack CRM API')
+    .setDescription('Real Estate CRM Backend — NestJS + TypeORM + PostgreSQL')
+    .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'JWT',
+    )
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, swaggerDocument, {
+    swaggerOptions: { persistAuthorization: true },
+  });
+
   await app.init();
 
   // Apply advanced SQL (functions, triggers, stored procedures)

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Payment } from './entities/payment.entity';
+import { Payment, PaymentStatus } from './entities/payment.entity';
 import { CreatePaymentDto, UpdatePaymentDto } from './dto/payment.dto';
 
 @Injectable()
@@ -47,7 +47,7 @@ export class PaymentsService {
       order: { payment_date: 'ASC' },
     });
     const totalPaid = items
-      .filter((p) => p.status === 'completed')
+      .filter((p) => p.status === PaymentStatus.COMPLETED)
       .reduce((sum, p) => sum + Number(p.amount), 0);
     return {
       data: { items, totalPaid },

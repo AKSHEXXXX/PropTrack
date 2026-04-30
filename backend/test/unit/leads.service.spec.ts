@@ -1,16 +1,12 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { LeadsService } from '../../src/modules/leads/leads.service';
+import { Agent } from '../../src/modules/agents/entities/agent.entity';
 import { Lead } from '../../src/modules/leads/entities/lead.entity';
+import { LeadsService } from '../../src/modules/leads/leads.service';
 import { Tag } from '../../src/modules/tags/entities/tag.entity';
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
-
-// QueryBuilder chain used by LeadsService.getPipeline
 const mockLeadQb = {
   select: jest.fn().mockReturnThis(),
   addSelect: jest.fn().mockReturnThis(),
@@ -30,18 +26,18 @@ const mockLeadRepo = {
   createQueryBuilder: jest.fn().mockReturnValue(mockLeadQb),
 };
 
-// LeadsService also injects Tag repo (addTag / removeTag methods)
 const mockTagRepo = {
   findOne: jest.fn(),
   save: jest.fn(),
 };
 
-// LeadsService.autoAssign calls dataSource.query (stored procedure)
+const mockAgentRepo = {
+  find: jest.fn(),
+};
+
 const mockDataSource = {
   query: jest.fn(),
 };
-
-// ---------------------------------------------------------------------------
 
 describe('LeadsService', () => {
   let service: LeadsService;
@@ -51,9 +47,8 @@ describe('LeadsService', () => {
       providers: [
         LeadsService,
         { provide: getRepositoryToken(Lead), useValue: mockLeadRepo },
-        // Required by constructor – Tag repo for addTag / removeTag
         { provide: getRepositoryToken(Tag), useValue: mockTagRepo },
-        // Required by constructor – DataSource for autoAssign stored-procedure call
+        { provide: getRepositoryToken(Agent), useValue: mockAgentRepo },
         { provide: DataSource, useValue: mockDataSource },
       ],
     }).compile();
@@ -61,7 +56,6 @@ describe('LeadsService', () => {
     service = module.get<LeadsService>(LeadsService);
 
     jest.clearAllMocks();
-    // Restore chainable QB after clearAllMocks wipes mockReturnThis()
     mockLeadRepo.createQueryBuilder.mockReturnValue(mockLeadQb);
     mockLeadQb.select.mockReturnThis();
     mockLeadQb.addSelect.mockReturnThis();
@@ -69,10 +63,8 @@ describe('LeadsService', () => {
     mockLeadQb.groupBy.mockReturnThis();
   });
 
-  // -------------------------------------------------------------------------
   describe('create', () => {
     it('should throw ConflictException for duplicate active lead', async () => {
-      // An existing lead with an active (non-terminal) status triggers the conflict
       mockLeadRepo.findOne.mockResolvedValue({ lead_id: 1, status: 'new' });
 
       await expect(
@@ -86,7 +78,6 @@ describe('LeadsService', () => {
     });
 
     it('should create a lead successfully', async () => {
-      // No existing active lead → creation proceeds
       mockLeadRepo.findOne.mockResolvedValue(null);
       mockLeadRepo.create.mockReturnValue({ lead_id: 1, status: 'new' });
       mockLeadRepo.save.mockResolvedValue({
@@ -107,7 +98,6 @@ describe('LeadsService', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   describe('findOne', () => {
     it('should return a lead by ID', async () => {
       mockLeadRepo.findOne.mockResolvedValue({

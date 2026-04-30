@@ -27,7 +27,8 @@ export class AuthService {
     const user = this.userRepo.create({ ...dto, password: hashed });
     await this.userRepo.save(user);
 
-    const { password: _pw, ...result } = user;
+    const result = { ...user };
+    delete result.password;
     return { data: result, message: 'Registration successful' };
   }
 

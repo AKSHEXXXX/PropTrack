@@ -4,8 +4,8 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
-import { Appointment } from './entities/appointment.entity';
+import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import {
   CreateAppointmentDto,
   UpdateAppointmentDto,
@@ -25,7 +25,7 @@ export class AppointmentsService {
       where: {
         agent_id: dto.agentId,
         scheduled_at: new Date(dto.scheduledAt),
-        status: 'scheduled' as any,
+        status: AppointmentStatus.SCHEDULED,
       },
     });
     if (clash)
@@ -86,7 +86,7 @@ export class AppointmentsService {
   async getUpcoming() {
     const items = await this.apptRepo.find({
       where: {
-        status: 'scheduled' as any,
+        status: AppointmentStatus.SCHEDULED,
         scheduled_at: MoreThanOrEqual(new Date()),
       },
       relations: ['agent', 'client', 'property'],
