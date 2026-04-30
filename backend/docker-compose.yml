@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: proptrack_db
+    environment:
+      POSTGRES_USER: proptrack
+      POSTGRES_PASSWORD: proptrack_secret
+      POSTGRES_DB: proptrack_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proptrack"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: proptrack_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: proptrack
+      DB_PASSWORD: proptrack_secret
+      DB_DATABASE: proptrack_db
+      JWT_SECRET: dev_jwt_secret
+      JWT_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:
