@@ -31,7 +31,7 @@ function createBaseTypeOrmOptions(
     password: configService.get<string>('DB_PASSWORD', 'proptrack_secret'),
     database: configService.get<string>('DB_DATABASE', 'proptrack_db'),
     entities: [...APP_ENTITIES],
-    synchronize: false, // Schema is managed by schema.sql — do not auto-sync
+    synchronize: process.env.DB_TYPE === 'pg-mem', // Only auto-sync for tests
     logging: configService.get<string>('NODE_ENV') === 'development',
   };
 }
