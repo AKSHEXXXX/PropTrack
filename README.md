@@ -32,7 +32,7 @@
 | **Dashboard** | 7 analytical endpoints using nested & correlated SQL queries |
 | **Advanced SQL** | 3 PL/pgSQL triggers, 2 stored procedures, 2 functions |
 | **Query Complexity** | 3 nested subqueries (NQ-01..03), 2 correlated subqueries (CQ-01..02) |
-| **Seed Data** | 1 agency, 3 agents, 10 clients, 15 properties, 20 leads, 5 tags |
+| **Seed Data** | Demo-ready Dubai CRM data: agency, agents, clients, properties, leads, tags, appointments, deals, contracts, and payments |
 | **Swagger Docs** | Full OpenAPI documentation at `/api/docs` |
 | **Docker** | Full `docker-compose` setup (Postgres 16 + NestJS app) |
 
@@ -55,8 +55,7 @@ PropTrack/
     │   ├── database/
     │   │   ├── seeds/seed.ts          # DB seed script
     │   │   └── sql/
-    │   │       ├── schema.sql         # Full DB schema (14 tables, 11 ENUMs)
-    │   │       └── advanced.sql       # Functions, triggers, stored procedures
+    │   │       └── init.sql           # Schema, indexes, functions, triggers, procedures
     │   └── modules/
     │       ├── agencies/
     │       ├── agents/
@@ -74,6 +73,8 @@ PropTrack/
     │   └── qualification.e2e-spec.ts  # Full qualification test suite
     ├── docker-compose.yml
     ├── Dockerfile
+    ├── pnpm-lock.yaml
+    ├── pnpm-workspace.yaml
     └── .env.example
 ```
 
@@ -147,7 +148,7 @@ PropTrack/
 | POST | `/api/deals` | Create deal (commission auto-calculated via SQL function) |
 | GET | `/api/deals` | List deals |
 | GET | `/api/deals/:id` | Deal with contracts & payments |
-| GET | `/api/deals/:id/audit` | Deal audit log (trigger-populated) |
+| GET | `/api/deals/:id/audit-log` | Deal audit log (trigger-populated) |
 | PATCH | `/api/deals/:id` | Update (closing triggers property→sold via DB trigger) |
 | DELETE | `/api/deals/:id` | Cancel deal |
 
@@ -182,6 +183,27 @@ tags     ←→ lead_tags ←→ leads
 users (auth)
 deal_audit_log (populated by trigger)
 ```
+
+---
+
+## Demo Seed Data
+
+The seed script creates a realistic Dubai real estate demo under **Dubai Realty Group**:
+
+| Entity | Count / Coverage |
+|---|---|
+| Agency | 1 agency |
+| Agents | 3 agents: Mohammed Al Rashid, Sara Khan, James Carter |
+| Clients | 10 clients across buyer, seller, renter, and landlord types |
+| Properties | 15 listings across Downtown Dubai, JBR, Dubai Marina, Palm Jumeirah, DIFC, Arabian Ranches, Business Bay, Dubai Hills, and more |
+| Tags | 5 lead tags |
+| Leads | 20 leads across pipeline statuses |
+| Appointments | 12 records across scheduled, completed, cancelled, and no-show states |
+| Deals | 6 records across pending, active, and closed states |
+| Contracts | 6 records tied to seeded deals |
+| Payments | 9 records including deposits and completed commissions |
+
+Property image support exists through the `property_images` table and `/api/properties/:id/images`, but the repository currently does not include project-owned listing image assets. For a stronger visual demo, add at least **15 images** (one primary image per property). A polished demo set would use **45 images** (three per property: exterior/view, interior/main room, amenity/detail).
 
 ---
 
@@ -281,10 +303,13 @@ Then open:
 pnpm test
 
 # Unit tests with coverage
-pnpm test:cov
+pnpm test:coverage
 
-# E2E / Qualification tests (requires running DB)
+# Integration tests with pg-mem
 pnpm test:e2e
+
+# Qualification tests
+pnpm test:qualify
 ```
 
 ---
