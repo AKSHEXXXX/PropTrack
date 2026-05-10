@@ -43,7 +43,7 @@ async function seed() {
     [agency.agency_id],
   );
   const agents = await q(
-    `SELECT agent_id FROM agents WHERE agency_id = $1 ORDER BY agent_id`,
+    `SELECT agent_id, commission_rate FROM agents WHERE agency_id = $1 ORDER BY agent_id`,
     [agency.agency_id],
   );
 
@@ -290,6 +290,219 @@ async function seed() {
       );
     } catch {
       /* skip duplicate */
+    }
+  }
+
+  const leadRows = await q(
+    `SELECT lead_id, client_id, property_id, agent_id, budget
+     FROM leads
+     WHERE agent_id = ANY($1::int[])
+     ORDER BY lead_id
+     LIMIT 20`,
+    [agents.map((agent: { agent_id: number }) => agent.agent_id)],
+  );
+
+  // Appointments for the demo calendar/activity views
+  const appointments = [
+    [
+      0,
+      'site_visit',
+      'completed',
+      -18,
+      'Downtown viewing completed. Client requested service charge details.',
+    ],
+    [
+      1,
+      'call',
+      'completed',
+      -15,
+      'Follow-up call completed. Financing pre-approval expected this week.',
+    ],
+    [
+      2,
+      'site_visit',
+      'completed',
+      -12,
+      'Marina studio tour completed. Client liked the building amenities.',
+    ],
+    [
+      3,
+      'meeting',
+      'completed',
+      -9,
+      'Offer strategy meeting completed with buyer.',
+    ],
+    [
+      4,
+      'site_visit',
+      'scheduled',
+      1,
+      'DIFC office walkthrough with operations team.',
+    ],
+    [5, 'site_visit', 'scheduled', 2, 'Arabian Ranches family viewing.'],
+    [6, 'call', 'scheduled', 3, 'Price discussion and document checklist.'],
+    [7, 'meeting', 'scheduled', 4, 'Seller meeting to review villa offer.'],
+    [8, 'site_visit', 'scheduled', 5, 'Retail unit inspection with investor.'],
+    [9, 'call', 'scheduled', 6, 'Business Bay shortlist review.'],
+    [
+      10,
+      'site_visit',
+      'cancelled',
+      -4,
+      'Client postponed plot visit due to travel.',
+    ],
+    [
+      11,
+      'site_visit',
+      'no_show',
+      -2,
+      'Client did not attend Sports City studio viewing.',
+    ],
+  ];
+
+  for (const [leadIndex, type, status, dayOffset, notes] of appointments) {
+    const lead = leadRows[Number(leadIndex) % leadRows.length];
+    if (!lead) continue;
+
+    await q(
+      `INSERT INTO appointments (
+        lead_id, agent_id, client_id, property_id, scheduled_at, type, status, notes
+      )
+      SELECT $1, $2, $3, $4, (CURRENT_DATE + $5::int) + TIME '10:30', $6, $7, $8
+      WHERE NOT EXISTS (
+        SELECT 1 FROM appointments WHERE lead_id = $1 AND scheduled_at::date = CURRENT_DATE + $5::int
+      )`,
+      [
+        lead.lead_id,
+        lead.agent_id,
+        lead.client_id,
+        lead.property_id,
+        dayOffset,
+        type,
+        status,
+        notes,
+      ],
+    );
+  }
+
+  // Deals across pending, active, and closed states for revenue/pipeline demos
+  const dealSeeds = [
+    [0, 2450000, 'closed', -20, -3],
+    [1, 8250000, 'active', -12, 18],
+    [2, 910000, 'closed', -16, -1],
+    [3, 5050000, 'pending', -5, 28],
+    [5, 3725000, 'active', -7, 21],
+    [9, 1800000, 'closed', -24, -8],
+  ];
+
+  for (const [
+    leadIndex,
+    finalPrice,
+    status,
+    dealOffset,
+    closingOffset,
+  ] of dealSeeds) {
+    const lead = leadRows[Number(leadIndex) % leadRows.length];
+    const agent = agents.find(
+      (agent: { agent_id: number }) => agent.agent_id === lead?.agent_id,
+    );
+    if (!lead || !agent) continue;
+
+    const commissionAmount = Math.round(
+      Number(finalPrice) * Number(agent.commission_rate ?? 0.025),
+    );
+
+    await q(
+      `INSERT INTO deals (
+        lead_id, property_id, agent_id, client_id, final_price, commission_amount,
+        status, deal_date, closing_date
+      )
+      SELECT $1, $2, $3, $4, $5, $6, $7,
+        CURRENT_DATE + $8::int,
+        CURRENT_DATE + $9::int
+      WHERE NOT EXISTS (SELECT 1 FROM deals WHERE lead_id = $1)`,
+      [
+        lead.lead_id,
+        lead.property_id,
+        lead.agent_id,
+        lead.client_id,
+        finalPrice,
+        commissionAmount,
+        status,
+        dealOffset,
+        closingOffset,
+      ],
+    );
+
+    if (status === 'closed') {
+      await q(`UPDATE leads SET status = 'deal_closed' WHERE lead_id = $1`, [
+        lead.lead_id,
+      ]);
+    }
+  }
+
+  const dealRows = await q(
+    `SELECT deal_id, final_price, commission_amount, status
+     FROM deals
+     WHERE lead_id = ANY($1::int[])
+     ORDER BY deal_id`,
+    [leadRows.map((lead: { lead_id: number }) => lead.lead_id)],
+  );
+
+  // Contracts tied to seeded deals
+  for (const deal of dealRows) {
+    const isClosed = deal.status === 'closed';
+    const isPending = deal.status === 'pending';
+    const contractType = Number(deal.final_price) < 1000000 ? 'rental' : 'sale';
+    const contractStatus = isClosed ? 'signed' : isPending ? 'draft' : 'sent';
+
+    await q(
+      `INSERT INTO contracts (
+        deal_id, document_url, contract_type, signed_date, expiry_date, status
+      )
+      SELECT $1, $2, $3,
+        CASE WHEN $4::boolean THEN CURRENT_DATE - 2 ELSE NULL END,
+        CURRENT_DATE + 365,
+        $5
+      WHERE NOT EXISTS (SELECT 1 FROM contracts WHERE deal_id = $1)`,
+      [
+        deal.deal_id,
+        `/demo/contracts/deal-${deal.deal_id}.pdf`,
+        contractType,
+        isClosed,
+        contractStatus,
+      ],
+    );
+  }
+
+  // Payments for finance dashboard demos
+  for (const deal of dealRows) {
+    const isClosed = deal.status === 'closed';
+    const depositAmount = Math.round(Number(deal.final_price) * 0.1);
+
+    await q(
+      `INSERT INTO payments (
+        deal_id, amount, payment_type, status, payment_date, reference_no
+      )
+      SELECT $1, $2, 'deposit', $3, CURRENT_DATE - 1, $4
+      WHERE NOT EXISTS (SELECT 1 FROM payments WHERE reference_no = $4)`,
+      [
+        deal.deal_id,
+        depositAmount,
+        isClosed ? 'completed' : 'pending',
+        `DRG-${deal.deal_id}-DEP`,
+      ],
+    );
+
+    if (isClosed && Number(deal.commission_amount) > 0) {
+      await q(
+        `INSERT INTO payments (
+          deal_id, amount, payment_type, status, payment_date, reference_no
+        )
+        SELECT $1, $2, 'commission', 'completed', CURRENT_DATE, $3
+        WHERE NOT EXISTS (SELECT 1 FROM payments WHERE reference_no = $3)`,
+        [deal.deal_id, deal.commission_amount, `DRG-${deal.deal_id}-COM`],
+      );
     }
   }
 
