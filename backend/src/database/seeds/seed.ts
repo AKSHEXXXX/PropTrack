@@ -255,6 +255,278 @@ async function seed() {
     `SELECT property_id, agent_id FROM properties ORDER BY property_id LIMIT 15`,
   );
 
+  const propertyImages = [
+    // prop index 0 — Luxury 2BR Downtown
+    [
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
+      true,
+      'Building exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800',
+      false,
+      'Living room',
+    ],
+    [
+      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
+      false,
+      'Pool area',
+    ],
+
+    // prop index 1 — Spacious Villa JBR
+    [
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
+      true,
+      'Villa exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
+      false,
+      'Master bedroom',
+    ],
+    [
+      'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=800',
+      false,
+      'Sea view',
+    ],
+
+    // prop index 2 — Studio in Marina
+    [
+      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800',
+      true,
+      'Marina view',
+    ],
+    [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+      false,
+      'Studio interior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800',
+      false,
+      'Building lobby',
+    ],
+
+    // prop index 3 — 3BR Palm Jumeirah
+    [
+      'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800',
+      true,
+      'Palm aerial',
+    ],
+    [
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800',
+      false,
+      'Living room',
+    ],
+    [
+      'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800',
+      false,
+      'Master bedroom',
+    ],
+
+    // prop index 4 — Office Space DIFC
+    [
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800',
+      true,
+      'Office exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800',
+      false,
+      'Open plan office',
+    ],
+    [
+      'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=800',
+      false,
+      'Meeting room',
+    ],
+
+    // prop index 5 — Townhouse Arabian
+    [
+      'https://images.unsplash.com/photo-1605146769289-440113cc3d00?w=800',
+      true,
+      'Townhouse exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+      false,
+      'Living area',
+    ],
+    [
+      'https://images.unsplash.com/photo-1572912498456-d8b0b19a3af4?w=800',
+      false,
+      'Community pool',
+    ],
+
+    // prop index 6 — 1BR City Walk
+    [
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
+      true,
+      'City Walk exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800',
+      false,
+      'Bedroom',
+    ],
+    [
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800',
+      false,
+      'Kitchen',
+    ],
+
+    // prop index 7 — Villa Meadows
+    [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+      true,
+      'Villa front',
+    ],
+    [
+      'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800',
+      false,
+      'Living room',
+    ],
+    [
+      'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800',
+      false,
+      'Private pool',
+    ],
+
+    // prop index 8 — Retail Shop Downtown
+    [
+      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800',
+      true,
+      'Shop frontage',
+    ],
+    [
+      'https://images.unsplash.com/photo-1560472355-536de3962603?w=800',
+      false,
+      'Retail interior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800',
+      false,
+      'Old Town area',
+    ],
+
+    // prop index 9 — 2BR Business Bay
+    [
+      'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800',
+      true,
+      'Canal view',
+    ],
+    [
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
+      false,
+      'Living room',
+    ],
+    [
+      'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800',
+      false,
+      'Bedroom',
+    ],
+
+    // prop index 10 — Land Plot Dubailand
+    [
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800',
+      true,
+      'Aerial land view',
+    ],
+    [
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
+      false,
+      'Plot boundary',
+    ],
+    [
+      'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800',
+      false,
+      'Nearby development',
+    ],
+
+    // prop index 11 — Studio Sports City
+    [
+      'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800',
+      true,
+      'Building exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800',
+      false,
+      'Studio interior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+      false,
+      'Sports facilities',
+    ],
+
+    // prop index 12 — 3BR Jumeirah
+    [
+      'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800',
+      true,
+      'Villa exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800',
+      false,
+      'Living room',
+    ],
+    [
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+      false,
+      'Garden',
+    ],
+
+    // prop index 13 — Office Tower TECOM
+    [
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800',
+      true,
+      'Tower exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800',
+      false,
+      'Office floor',
+    ],
+    [
+      'https://images.unsplash.com/photo-1497366412874-3415097a27e7?w=800',
+      false,
+      'Reception',
+    ],
+
+    // prop index 14 — 4BR Hills Estate
+    [
+      'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800',
+      true,
+      'Hills villa exterior',
+    ],
+    [
+      'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800',
+      false,
+      'Open plan living',
+    ],
+    [
+      'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800',
+      false,
+      'Garden with pool',
+    ],
+  ];
+
+  for (let i = 0; i < propertyImages.length; i++) {
+    const propIndex = Math.floor(i / 3);
+    const prop = propertyRows[propIndex];
+    const [url, isPrimary] = propertyImages[i];
+    if (!prop) continue;
+    await q(
+      `INSERT INTO property_images (property_id, image_url, is_primary)
+       VALUES ($1, $2, $3)
+       ON CONFLICT DO NOTHING`,
+      [prop.property_id, url, isPrimary],
+    );
+  }
+
+  console.log('   ✅ Property images seeded (45 images, 3 per property)');
+
   // Tags
   await q(`INSERT INTO tags (name, color) VALUES
     ('Hot Lead','#EF4444'), ('Price Drop','#F97316'), ('VIP Client','#8B5CF6'),
