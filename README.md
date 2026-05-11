@@ -32,7 +32,7 @@
 | **Dashboard** | 7 analytical endpoints using nested & correlated SQL queries |
 | **Advanced SQL** | 3 PL/pgSQL triggers, 2 stored procedures, 2 functions |
 | **Query Complexity** | 3 nested subqueries (NQ-01..03), 2 correlated subqueries (CQ-01..02) |
-| **Seed Data** | Demo-ready Dubai CRM data: agency, agents, clients, properties, leads, tags, appointments, deals, contracts, and payments |
+| **Seed Data** | Demo-ready Dubai CRM data: agency, agents, clients, properties, leads, tags, appointments, deals, contracts, payments, and 45 property images |
 | **Swagger Docs** | Full OpenAPI documentation at `/api/docs` |
 | **Docker** | Full `docker-compose` setup (Postgres 16 + NestJS app) |
 
@@ -175,6 +175,7 @@ Standard CRUD — see Swagger docs for full reference.
 
 ```
 agencies → agents → properties
+      → property_images
                  → leads → appointments
                          → deals → contracts
                                  → payments
@@ -203,7 +204,7 @@ The seed script creates a realistic Dubai real estate demo under **Dubai Realty 
 | Contracts | 6 records tied to seeded deals |
 | Payments | 9 records including deposits and completed commissions |
 
-Property image support exists through the `property_images` table and `/api/properties/:id/images`, but the repository currently does not include project-owned listing image assets. For a stronger visual demo, add at least **15 images** (one primary image per property). A polished demo set would use **45 images** (three per property: exterior/view, interior/main room, amenity/detail).
+Property image support exists through the `property_images` table and `/api/properties/:id/images`, and the seed now includes **45 images** total, three per property: a primary exterior/view shot plus two supporting interior or amenity shots.
 
 ---
 
