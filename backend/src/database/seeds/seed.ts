@@ -255,6 +255,24 @@ async function seed() {
     `SELECT property_id, agent_id FROM properties ORDER BY property_id LIMIT 15`,
   );
 
+  // Property Images
+  const unsplashImages = [
+    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=800&q=80',
+  ];
+
+  for (let i = 0; i < propertyRows.length; i++) {
+    const prop = propertyRows[i];
+    const imageUrl = unsplashImages[i % unsplashImages.length];
+    await q(
+      `INSERT INTO property_images (property_id, image_url, is_primary) VALUES ($1, $2, true)`,
+      [prop.property_id, imageUrl]
+    );
+  }
+
   // Tags
   await q(`INSERT INTO tags (name, color) VALUES
     ('Hot Lead','#EF4444'), ('Price Drop','#F97316'), ('VIP Client','#8B5CF6'),
@@ -290,6 +308,37 @@ async function seed() {
       );
     } catch {
       /* skip duplicate */
+    }
+  }
+
+  const leadRows = await q(`SELECT lead_id, client_id, property_id, agent_id FROM leads LIMIT 10`);
+  
+  // Appointments
+  for (let i = 0; i < 5; i++) {
+    if (!leadRows[i]) continue;
+    const lead = leadRows[i];
+    await q(`INSERT INTO appointments (lead_id, agent_id, client_id, property_id, scheduled_at, type, status, notes)
+    VALUES ($1, $2, $3, $4, NOW() + (interval '1 day' * $5), 'site_visit', 'scheduled', 'Initial viewing')`,
+    [lead.lead_id, lead.agent_id, lead.client_id, lead.property_id, i + 1]);
+  }
+
+  // Deals & Payments (Revenue exactly 250k)
+  const dealAmounts = [100000, 100000, 50000];
+  
+  for (let i = 0; i < dealAmounts.length; i++) {
+    if (!leadRows[i]) continue;
+    const lead = leadRows[i];
+    const finalPrice = dealAmounts[i];
+    const comm = finalPrice * 0.02;
+    await q(`INSERT INTO deals (lead_id, property_id, agent_id, client_id, final_price, commission_amount, status, deal_date)
+    VALUES ($1, $2, $3, $4, $5, $6, 'closed', NOW() - (interval '1 day' * $7))`,
+    [lead.lead_id, lead.property_id, lead.agent_id, lead.client_id, finalPrice, comm, i]);
+    
+    const dealRows = await q(`SELECT deal_id FROM deals WHERE lead_id = $1 LIMIT 1`, [lead.lead_id]);
+    if (dealRows.length > 0) {
+      await q(`INSERT INTO payments (deal_id, amount, payment_type, status, payment_date)
+      VALUES ($1, $2, 'full', 'completed', NOW() - (interval '1 day' * $3))`,
+      [dealRows[0].deal_id, finalPrice, i]);
     }
   }
 

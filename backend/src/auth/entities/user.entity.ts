@@ -20,12 +20,12 @@ export class User {
   @Column({ default: 'agent' })
   role: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'agent_id', nullable: true })
   agentId: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

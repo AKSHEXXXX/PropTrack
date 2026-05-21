@@ -1,0 +1,267 @@
+// PropTrack CRM Database Diagram (DBML)
+// Import this to https://dbdiagram.io/
+
+Project PropTrack_CRM {
+  database_type: 'PostgreSQL'
+  Note: 'PropTrack CRM - Real Estate Management System'
+}
+
+// ==================== ENUMS ====================
+
+Enum client_type {
+  buyer
+  seller
+  renter
+  landlord
+}
+
+Enum property_type {
+  apartment
+  villa
+  townhouse
+  office
+  retail
+  land
+}
+
+Enum property_status {
+  available
+  under_negotiation
+  sold
+  rented
+  off_market
+}
+
+Enum lead_status {
+  new
+  contacted
+  visit_scheduled
+  offer_made
+  deal_closed
+  lost
+}
+
+Enum appointment_type {
+  site_visit
+  meeting
+  call
+}
+
+Enum appointment_status {
+  scheduled
+  completed
+  cancelled
+  no_show
+}
+
+Enum deal_status {
+  pending
+  active
+  closed
+  cancelled
+}
+
+Enum contract_type {
+  sale
+  rental
+  mou
+  listing_agreement
+}
+
+Enum contract_status {
+  draft
+  sent
+  signed
+  expired
+  cancelled
+}
+
+Enum payment_type {
+  full
+  installment
+  deposit
+  commission
+}
+
+Enum payment_status {
+  pending
+  completed
+  failed
+  refunded
+}
+
+// ==================== TABLES ====================
+
+Table users {
+  id int [pk, increment]
+  email varchar(255) [unique, not null]
+  password varchar(255) [not null]
+  role varchar(255) [default: 'agent']
+  agentId int
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table agencies {
+  agency_id int [pk, increment]
+  name varchar(255) [not null]
+  address varchar(500)
+  phone varchar(20)
+  email varchar(255) [unique, not null]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table agents {
+  agent_id int [pk, increment]
+  agency_id int [not null, ref: > agencies.agency_id]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  email varchar(255) [unique, not null]
+  phone varchar(20)
+  commission_rate decimal(5,4) [default: 0.025]
+  is_active boolean [default: true]
+  joined_at date
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table clients {
+  client_id int [pk, increment]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  email varchar(255) [unique]
+  phone varchar(20)
+  client_type client_type [default: 'buyer']
+  nationality varchar(100)
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table properties {
+  property_id int [pk, increment]
+  agent_id int [not null, ref: > agents.agent_id]
+  title varchar(500) [not null]
+  description text
+  location varchar(500) [not null]
+  city varchar(100) [default: 'Dubai']
+  price decimal(15,2) [not null]
+  area_sqft decimal(10,2)
+  property_type property_type [not null]
+  status property_status [default: 'available']
+  bedrooms smallint
+  bathrooms smallint
+  listed_at date
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table property_images {
+  image_id int [pk, increment]
+  property_id int [not null, ref: > properties.property_id]
+  image_url varchar(1000) [not null]
+  is_primary boolean [default: false]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+
+  Note: 'Cascade delete when property is deleted'
+}
+
+Table tags {
+  tag_id int [pk, increment]
+  name varchar(100) [unique, not null]
+  color varchar(7) [default: '#6B7280']
+}
+
+Table leads {
+  lead_id int [pk, increment]
+  client_id int [not null, ref: > clients.client_id]
+  property_id int [not null, ref: > properties.property_id]
+  agent_id int [not null, ref: > agents.agent_id]
+  status lead_status [default: 'new']
+  notes text
+  budget decimal(15,2)
+  is_stale boolean [default: false]
+  inquiry_date timestamptz [default: 'NOW()']
+  last_activity timestamptz [default: 'NOW()']
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table lead_tags {
+  lead_id int [ref: > leads.lead_id]
+  tag_id int [ref: > tags.tag_id]
+
+  indexes {
+    (lead_id, tag_id) [pk]
+  }
+
+  Note: 'Junction table for many-to-many relationship'
+}
+
+Table appointments {
+  appointment_id int [pk, increment]
+  lead_id int [not null, ref: > leads.lead_id]
+  agent_id int [not null, ref: > agents.agent_id]
+  client_id int [not null, ref: > clients.client_id]
+  property_id int [not null, ref: > properties.property_id]
+  scheduled_at timestamptz [not null]
+  type appointment_type [default: 'site_visit']
+  status appointment_status [default: 'scheduled']
+  notes text
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+
+  Note: 'Cascade delete when lead is deleted'
+}
+
+Table deals {
+  deal_id int [pk, increment]
+  lead_id int [not null, ref: > leads.lead_id]
+  property_id int [not null, ref: > properties.property_id]
+  agent_id int [not null, ref: > agents.agent_id]
+  client_id int [not null, ref: > clients.client_id]
+  final_price decimal(15,2) [not null]
+  commission_amount decimal(15,2)
+  status deal_status [default: 'pending']
+  deal_date date
+  closing_date date
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table contracts {
+  contract_id int [pk, increment]
+  deal_id int [not null, ref: > deals.deal_id]
+  document_url varchar(1000)
+  contract_type contract_type [not null]
+  signed_date date
+  expiry_date date
+  status contract_status [default: 'draft']
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+
+  Note: 'Cascade delete when deal is deleted'
+}
+
+Table payments {
+  payment_id int [pk, increment]
+  deal_id int [not null, ref: > deals.deal_id]
+  amount decimal(15,2) [not null]
+  payment_type payment_type [not null]
+  status payment_status [default: 'pending']
+  payment_date date
+  reference_no varchar(100) [unique]
+  created_at timestamp [default: 'CURRENT_TIMESTAMP']
+  updated_at timestamp [default: 'CURRENT_TIMESTAMP']
+}
+
+Table deal_audit_log {
+  log_id int [pk, increment]
+  deal_id int [not null]
+  old_status deal_status
+  new_status deal_status [not null]
+  changed_by varchar(255)
+  changed_at timestamp [default: 'CURRENT_TIMESTAMP']
+
+  Note: 'Tracks all deal status changes'
+}
