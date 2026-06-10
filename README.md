@@ -1,4 +1,4 @@
-# PropTrack CRM — Real Estate Backend
+# PropTrack — Real Estate CRM
 
 > A production-ready **NestJS + TypeORM + PostgreSQL** backend for managing a real estate agency's full CRM pipeline — from property listings and leads to deals, contracts, and payments.
 
