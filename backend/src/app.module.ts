@@ -31,7 +31,8 @@ function createBaseTypeOrmOptions(
     password: configService.get<string>('DB_PASSWORD', 'proptrack_secret'),
     database: configService.get<string>('DB_DATABASE', 'proptrack_db'),
     entities: [...APP_ENTITIES],
-    synchronize: process.env.DB_TYPE === 'pg-mem', // Only auto-sync for tests
+    synchronize: configService.get<string>('NODE_ENV') !== 'production' && process.env.DB_TYPE === 'pg-mem', // Ensure false in production
+    ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
     logging: configService.get<string>('NODE_ENV') === 'development',
   };
 }

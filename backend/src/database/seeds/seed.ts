@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import 'dotenv/config';
 
 async function seed() {
   const dataSource = new DataSource({
@@ -11,6 +12,7 @@ async function seed() {
     database: process.env.DB_DATABASE || 'proptrack_db',
     synchronize: false,
     entities: [],
+    ssl: { rejectUnauthorized: false },
   });
 
   await dataSource.initialize();
@@ -756,8 +758,8 @@ async function seed() {
       `INSERT INTO payments (
         deal_id, amount, payment_type, status, payment_date, reference_no
       )
-      SELECT $1, $2, 'deposit', $3, CURRENT_DATE - 1, $4
-      WHERE NOT EXISTS (SELECT 1 FROM payments WHERE reference_no = $4)`,
+      SELECT $1, $2, 'deposit', $3, CURRENT_DATE - 1, $4::varchar
+      WHERE NOT EXISTS (SELECT 1 FROM payments WHERE reference_no = $4::varchar)`,
       [
         deal.deal_id,
         depositAmount,
@@ -771,8 +773,8 @@ async function seed() {
         `INSERT INTO payments (
           deal_id, amount, payment_type, status, payment_date, reference_no
         )
-        SELECT $1, $2, 'commission', 'completed', CURRENT_DATE, $3
-        WHERE NOT EXISTS (SELECT 1 FROM payments WHERE reference_no = $3)`,
+        SELECT $1, $2, 'commission', 'completed', CURRENT_DATE, $3::varchar
+        WHERE NOT EXISTS (SELECT 1 FROM payments WHERE reference_no = $3::varchar)`,
         [deal.deal_id, deal.commission_amount, `DRG-${deal.deal_id}-COM`],
       );
     }
